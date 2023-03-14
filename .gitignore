@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+config.py
+kampfrichter.xlsx
+.vscode
