@@ -10,16 +10,23 @@ s = requests.Session()
 
 def load_and_write_data():
     dfs = []
+    canceled = []
 
     for id in ids:
         print(f"Trying {id} for glied {glied_id}")
 
         xls_content = get_xlsx(glied_id, id)
         dfs.append(parse_excel(xls_content))
+        canceled_content = get_xlsx(glied_id, id, status=3)
+        canceled.append(parse_excel(canceled_content))
 
     df = pd.concat([d for d in dfs])
     df.sort_values('Anm-Dat', axis=0, inplace=True)
     df.to_excel('kampfrichter.xlsx')
+
+    cdf = pd.concat([d for d in canceled])
+    cdf.sort_values('Anm-Dat', axis=0, inplace=True)
+    cdf.to_excel('kampfrichter_abgesagt.xlsx')
 
 
 def parse_excel(data):
@@ -38,12 +45,20 @@ def login():
         raise Exception("Couldn't log in")
 
 
-def get_xlsx(glied_id, id):
+def get_xlsx(glied_id, id, status = 0):
+    '''Downloads a seminar XLSX
+    Arguments:
+    glied_id:   ID of Gliederung
+    id:         ID of seminar
+    status:     Which participant statuses to download.
+                0: active
+                3: canceled
+    '''
     url = f"https://dlrg.net/apps/seminar?page=loadDokumente&format=pdf&edvnummer={glied_id}&id={id}&noheader=1"
     parameters = {
         'dokumentListeTyp': 'xls',
         'dokumentListeRolleList[]': '1',
-        'dokumentListeStatusList[]': '0',
+        'dokumentListeStatusList[]': f"{status}",
         'dokumentListeTnstatusBestaetigtDurchTeilnehmer': '',
         'dokumentListeTnstatusBestaetigtDurchVerwalter': '',
         'dokumentListeTnstatusBestaetigtDurchGliederung': '',
